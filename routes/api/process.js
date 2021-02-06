@@ -98,4 +98,26 @@ router.delete("/process", (req, res) => {
 });
 
 
+// @route GET /stats
+// @desc return average running time for each api method
+
+router.get("/stats", (req, res) => {
+
+    let fromDate  = req.query.fromDate ?  new Date(req.query.fromDate) : new Date("1900-01-01T00:00:00.000Z")
+    let toDate = req.query.toDate ?  new Date(req.query.toDate) : new Date()
+    
+
+    Process.aggregate([
+        { "$match": {
+            "date": { "$gte": fromDate,  "$lt": toDate}
+        }}, 
+        {$group : {_id : "$method", num_req : {$sum : 1}, avg_time: {$avg : "$duration"}}}      
+    ])
+    .then(result => {
+        res.json(result)
+    })
+
+});
+
+
 module.exports = router;
